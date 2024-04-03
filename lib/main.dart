@@ -4,7 +4,7 @@ import 'package:deepar_flutter/deepar_flutter.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
@@ -61,6 +61,78 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+  Widget displayButtons() => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          IconButton(
+            onPressed: () {
+              controller.flipCamera();
+            },
+            icon: const Icon(
+              Icons.flip_camera_ios_outlined,
+              size: 34,
+              color: Colors.white,
+            ),
+          ),
+          FilledButton(
+            onPressed: () {
+              controller.takeScreenshot();
+            },
+            child: const Icon(Icons.camera),
+          ),
+          IconButton(
+            onPressed: () {
+              controller.toggleFlash();
+            },
+            icon: const Icon(
+              Icons.flash_on,
+              size: 34,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      );
+
+  Widget displayCameraPreview() => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.82,
+        child: Transform.scale(
+          scale: 1.5,
+          child: DeepArPreview(controller),
+        ),
+      );
+
+  Widget displayFiltersList() => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.1,
+        child: ListView.builder(
+            shrinkWrap: true,
+            scrollDirection: Axis.horizontal,
+            itemCount: filters.length,
+            itemBuilder: (context, index) {
+              return InkWell(
+                onTap: () {
+                  controller.switchEffect(
+                      File('assets/filters/${filters[index].filterPath}').path);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    width: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      image: DecorationImage(
+                        image: AssetImage(
+                            'assets/previews/${filters[index].imagePath}'),
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+      );
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -69,43 +141,12 @@ class _MyAppState extends State<MyApp> {
           future: initializeController(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
-              return Stack(
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Transform.scale(
-                    scale: 1.4,
-                    child: DeepArPreview(controller),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: ListView.builder(
-                        shrinkWrap: true,
-                        scrollDirection: Axis.horizontal,
-                        itemCount: filters.length,
-                        itemBuilder: (context, index) {
-                          return InkWell(
-                            onTap: () {
-                              controller.switchEffect(File(
-                                      'assets/filters/${filters[index].filterPath}')
-                                  .path);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Container(
-                                width: 40,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white,
-                                  image: DecorationImage(
-                                    image: AssetImage(
-                                        'assets/previews/${filters[index].imagePath}'),
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                  )
+                  displayCameraPreview(),
+                  displayButtons(),
+                  displayFiltersList(),
                 ],
               );
             } else {
